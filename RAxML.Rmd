@@ -22,7 +22,17 @@ If you are an IU student, postdoc, or faculty member you can register for an acc
 
 ### Step 1. Create an alligned fasta file
 
-There are differernt ways of doing this that are beyond the scope of this description. 
+There are different ways of doing this. 
+For example, Silva has an fast and easy web-based alignment tool (<https://www.arb-silva.de/aligner/>).
+For larger jobs, sequences can be aligned in mothur on the cluster. 
+Another option is to use the program muscle, which can be downloaded here: <https://drive5.com/muscle/>. 
+The stand-alone program should be installed on the admin account of your computer. 
+After unzipping, rename the program "muscle".
+Then, move the program from, for example, your desktop using the following command at the terminal:
+`sudo cp Dekstop/muscle /usr/local/bin`
+Confirm proper installation by typing `muscle` at the command line. 
+Now you are ready to align your sequences using the following command at the terminal:
+`muscle -in ./data/p.isolates.fasta -out ./data/p.isolates.afa`
 
 ### Step 2. Create a shell script that will run RAxML
 
