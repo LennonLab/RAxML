@@ -1,7 +1,7 @@
 ---
 title: "Making a Tree Using RAxML"
 author: "William Shoemaker and Jay T. Lennon"
-date: "March 8, 2017"
+date: "June 5, 2020"
 header-includes:
    - \usepackage{array}
 output: pdf_document
@@ -12,33 +12,37 @@ geometry: margin=2.54cm
 
 Maximum likelihood (ML) is one of the preferred ways of constructing a phylogenetic tree. 
 ML uses the process of finding the parameter value that maximizes the likelihood of the data. 
-In addition, ML has the advantage of being the estimation method that is least affected by sampling error, is fairly robust to the assumptions of a particularly substitution model, allows you to compare different trees, and takes into account nucleotide states (as opposed to just distance). 
+In addition, ML has the advantage of being the estimation method that is least affected by sampling error, is fairly robust to the assumptions of a particularl substitution model, allows you to compare different trees, and takes into account nucleotide states (as opposed to just distance). 
 However, ML estimation is a computationally intensive process that can require a lot of time. 
 This is because ML estimation needs to find the tree that gives the data the highest probability, a difficult task that requires the use of optimized algorithms. 
 Because ML estimation can take a long time, you may want to use Randomized Axelerated Maximum Likelihood (RAxML) package for generating maximum likelihood trees with bootstrap support (<http://sco.h-its.org/exelixis/web/software/raxml/index.html>).
-Instructions below are for running RAxML on the high speed computer, Mason at IU.  
-If you are an IU student, postdoc, or faculty member you can register for an account on Mason. See the IU Mason webpage for more information (<https://kb.iu.edu/d/bbhh>).
+Instructions below are for running RAxML on the high speed computer, Carbonate at IU.  
+If you are an IU student, postdoc, or faculty member you can register for an account on Carbonate. 
+See the IU Mason webpage for more information (<https://kb.iu.edu/d/aolp>).
 
 
 ### Step 1. Create an alligned fasta file
 
+There are many steps to making a good tree. 
+The first step is to create a good alignment. 
 There are different ways of doing this. 
-For example, Silva has an fast and easy web-based alignment tool (<https://www.arb-silva.de/aligner/>).
-For larger jobs, sequences can be aligned in mothur on the cluster. 
-Another option is to use the program muscle, which can be downloaded here: <https://drive5.com/muscle/>. 
+For example, Silva has a fast and easy web-based alignment tool (<https://www.arb-silva.de/aligner/>), but this may not be ideal for projects with lots of sequences. 
+In addition, this may not be very reproducible. 
+For larger jobs, sequences can be aligned in a reproducible manner using `mothur` on the cluster. 
+Another option is to use the program `muscle`, which can be downloaded here: <https://drive5.com/muscle/>. 
 The stand-alone program should be installed on the admin account of your computer. 
-After unzipping, rename the program "muscle".
+After unzipping the downloaded file, you might consider renaming to "muscle".
 Then, move the program from, for example, your desktop using the following command at the terminal:
 `sudo cp Dekstop/muscle /usr/local/bin`
 Confirm proper installation by typing `muscle` at the command line. 
 Now you are ready to align your sequences using the following command at the terminal:
-`muscle -in ./data/p.isolates.fasta -out ./data/p.isolates.afa`
+`muscle -in ./Rpf/data/phylogeny/data/Rpf.16S.tree.fasta -out ./Rpf/data/phylogeny/Rpf.16S.tree.afa`
 
 ### Step 2. Create a shell script that will run RAxML
-
-Below is an example of shell script titled `RAxML_mason.sh` that will make an ML tree file.
+With the muscle-aligned sequences, you are now ready to generate the maximum likelihood tree files. 
+The first step in this process is to generate a shell script, which we will name `rpf.ml.sh`.
 The # sign in the code below are comments that provide some annotation.
-In addition, adjust `walltime` for appropriate lenght of time needed. 
+In addition, adjust `walltime` for appropriate length of time needed. 
 You should also change and include the full directory to where your shell script and fasta file are located. 
 You should change the `-o` option to the name of your appropriate outgroup sequence (if necessary). 
 More description on RAxML code can be found here: <http://sco.h-its.org/exelixis/web/software/raxml/hands_on.html>
@@ -50,14 +54,15 @@ More description on RAxML code can be found here: <http://sco.h-its.org/exelixis
 #PBS -M lennonj@indiana.edu
 #PBS -m abe
 #PBS -j oe
+#PBS -N RpfTree
 
-module load raxml/8.0.26
+module load raxml/gnu/8.2.11
 
 # cd into the directory with your alignment
 
-cd /N/dc2/projects/Lennon_Sequences/LTDE_Tree
+cd /N/dc2/projects/Lennon_Sequences/Rpf
 
-raxmlHPC-PTHREADS -T 4 -f a -m GTRGAMMA -p 12345 -x 12345 -o Methanosarcina -# autoMRE -s ./deathcurves.clustal.afa.fasta -n LTDE.ML
+raxmlHPC-PTHREADS -T 4 -f a -m GTRGAMMA -p 12345 -x 12345 -o Methanosarcina -# autoMRE -s ./Rpf.16S.tree.afa -n Rpf.16S.tree.afa
 
 # -T = number of threads
 # -f = specifies bootstrapping algorithm with ML generating tree at same time
@@ -70,33 +75,39 @@ raxmlHPC-PTHREADS -T 4 -f a -m GTRGAMMA -p 12345 -x 12345 -o Methanosarcina -# a
 # -n = name of output file 
 ```
 
-### Step 3. Move files to Mason and execute shell script
+### Step 3. Move files to Carbonate and execute shell script
 
-To run RAxML, you will need to move files to Mason.
+To run RAxML, you will need to move files to Carbonate.
 This can be done as follows. 
-First, open a terminal window and navigate to the directory on your local computer containing your shell script file and your alligned fasta file. 
-Next you will secure copy the file from your local computer to Mason using commands like this (you will be asked for your password):
+First, open a terminal window and navigate to the directory on your local computer containing your shell script file and your aligned fasta file. 
+Next you will secure copy the shell script from your local computer to Carbonate using commands like this (you will be asked for your password):
 
 ```
-scp RAxML_mason.sh lennonj@mason.uits.iu.edu:/N/dc2/projects/Lennon_Sequences/LTDE_Tree
+scp rpf.ml.sh lennonj@carbonate.uits.iu.edu:/N/dc2/projects/Lennon_Sequences/Rpf
 ```
 
-Now you need to open another terminal window and log into Mason as follows (you will be asked for your password)
+You will repeat this step to move your alignment file to the same directory:
 
 ```
-ssh lennonj@mason.uits.iu.edu
+scp Rpf.16S.tree.afa lennonj@carbonate.uits.iu.edu:/N/dc2/projects/Lennon_Sequences/Rpf
+```
+
+Now you need to open a separate terminal window and log into Carbonate as follows (you will be asked for your password)
+
+```
+ssh lennonj@carbonate.uits.iu.edu
 ```
 
 Now navigate to your folder containing recently `scp`'d files like this:
 
 ```
-cd /N/dc2/projects/Lennon_Sequences/LTDE_Tree
+cd /N/dc2/projects/Lennon_Sequences/Rpf
 ```
 
 Now you are ready to submit your job by typing the following at the terminal:
 
 ```
-qsub RAxML_mason.sh
+qsub rpf.ml.sh
 ```
 
 You can check on the status of your job typing the following at the terminal (substitute your username):
@@ -111,13 +122,20 @@ If you need to kill the job, type the following at the terminal after retrieving
 qdel 332659 
 ```
 
-To move output files back to your local computer, do the following at the terminal:
+If your job successfully ran, you will see a number of output files in your project directory on Carbonate.
+The list will include files that look like this:
+
+RAxML_bestTree.rpf.ml
+RAxML_bipartitionsBranchLabels.rpf.ml
+RAxML_bipartitions.rpf.ml
+RAxML_bootstrap.rpf.ml
+RAxML_info.rpf.ml
+
+To move these files back to your local computer, do the following at the terminal:
 
 ```
-scp lennonj@mason.uits.iu.edu:/N/dc2/projects/Lennon_Sequences/LTDE_Tree/LTDE.ML /Users/lennonj/Github/Dimensions/Aim1/DeathCurves
+scp lennonj@carbonate.uits.iu.edu:/N/dc2/projects/Lennon_Sequences/Rpf/RAxML_bestTree.rpf.ml /Users/lennonj/Github/Rpf/data/phylogeny
 ```
 
-
-
-
+For making ML tree, use the RAxML_bipartitions.rpf.ml file. 
 
